@@ -1,5 +1,142 @@
 <?php
-require_once __DIR__.'/includes/bootstrap.php';$pid=(int)($_GET['id']??0);$u=require_owner($pid);$s=db()->prepare("SELECT l.*,COALESCE(NULLIF(u.display_name,''),u.user_account) display_name FROM activity_logs l LEFT JOIN user_tbl u ON u.user_account=l.user_account WHERE l.project_id=? ORDER BY l.created_at ASC");$s->execute([$pid]);$logs=$s->fetchAll();
-if(isset($_GET['download'])){$text="PPタスク管理 活動ログ\n";foreach($logs as $l){$text.=$l['created_at']."\n表示名: ".$l['display_name']."\nメール: ".$l['user_account']."\n操作: ".$l['action']."\n".$l['details']."\n------------------------------\n";}header('Content-Type:text/plain; charset=UTF-8');header('Content-Disposition: attachment; filename="PPTask_ProjectLog_'.$pid.'.txt"');echo $text;exit;}
+
+require_once __DIR__ . '/includes/bootstrap.php';
+
+$pid = (int) ($_GET['id'] ?? 0);
+
+$u = require_owner($pid);
+
+$s = db()->prepare(
+    "SELECT
+        l.*,
+        COALESCE(
+            NULLIF(u.display_name, ''),
+            u.user_account
+        ) AS display_name
+     FROM activity_logs l
+     LEFT JOIN user_tbl u
+        ON u.user_account = l.user_account
+     WHERE l.project_id = ?
+     ORDER BY l.created_at ASC"
+);
+
+$s->execute([$pid]);
+
+$logs = $s->fetchAll();
+
+if (isset($_GET['download'])) {
+
+    $text = "PPタスク管理 活動ログ\n";
+
+    foreach ($logs as $l) {
+
+        $text .=
+            $l['created_at'] . "\n" .
+            "表示名: " . $l['display_name'] . "\n" .
+            "メール: " . $l['user_account'] . "\n" .
+            "操作: " . $l['action'] . "\n" .
+            $l['details'] . "\n" .
+            "------------------------------\n";
+    }
+
+    header(
+        'Content-Type: text/plain; charset=UTF-8'
+    );
+
+    header(
+        'Content-Disposition: attachment; filename="PPTask_ProjectLog_' . $pid . '.txt"'
+    );
+
+    echo $text;
+
+    exit;
+}
+
 ?>
-<!doctype html><html lang="ja"><head><meta charset="UTF-8"><title><?=h(page_title('活動ログ'))?></title><link rel="stylesheet" href="css/style.css"></head><body><div class="app"><header><h1>活動ログ</h1><div><a class="btn primary" href="?id=<?=$pid?>&download=1">テキスト出力</a><a class="btn" href="index.php?project_id=<?=$pid?>">戻る</a></div></header><div class="card"><?php foreach($logs as $l):?><article class="log"><time><?=h($l['created_at'])?></time> <strong><?=h($l['display_name'])?></strong> &lt;<?=h($l['user_account'])?>&gt;　<b><?=h($l['action'])?></b><?php if($l['details']):?><p><?=h($l['details'])?></p><?php endif;?></article><?php endforeach;?></div></div></body></html>
+
+<!doctype html>
+<html lang="ja">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <title>
+        <?= h(page_title('活動ログ')) ?>
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="css/style.css"
+    >
+
+</head>
+
+<body>
+
+<div class="app">
+
+    <header>
+
+        <h1>
+            活動ログ
+        </h1>
+
+        <div>
+
+            <a
+                class="btn primary"
+                href="?id=<?= $pid ?>&download=1"
+            >
+                テキスト出力
+            </a>
+
+            <a
+                class="btn"
+                href="index.php?project_id=<?= $pid ?>"
+            >
+                戻る
+            </a>
+
+        </div>
+
+    </header>
+
+    <div class="card">
+
+        <?php foreach ($logs as $l): ?>
+
+            <article class="log">
+
+                <time>
+                    <?= h($l['created_at']) ?>
+                </time>
+
+                <strong>
+                    <?= h($l['display_name']) ?>
+                </strong>
+
+                &lt;<?= h($l['user_account']) ?>&gt;
+
+                <b>
+                    <?= h($l['action']) ?>
+                </b>
+
+                <?php if ($l['details']): ?>
+
+                    <p>
+                        <?= h($l['details']) ?>
+                    </p>
+
+                <?php endif; ?>
+
+            </article>
+
+        <?php endforeach; ?>
+
+    </div>
+
+</div>
+
+</body>
+</html>
